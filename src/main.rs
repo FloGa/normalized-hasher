@@ -1,11 +1,25 @@
+use std::ffi::OsString;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 
+use clap::Parser;
 use sha2::{Digest, Sha256};
 
+#[derive(Parser)]
+#[clap(author, version, about, long_about = None)]
+struct Cli {
+    /// File to be hashed
+    file_in: OsString,
+
+    /// File to write normalized input into
+    file_out: Option<OsString>,
+}
+
 fn main() {
-    let file_in = std::env::args_os().nth(1).unwrap();
-    let file_out = std::env::args_os().nth(2);
+    let cli = Cli::parse();
+
+    let file_in = cli.file_in;
+    let file_out = cli.file_out;
 
     let file_in = File::open(file_in).unwrap();
     let file_in = BufReader::new(file_in);
@@ -34,4 +48,10 @@ fn main() {
 
     let hex_hash = base16ct::lower::encode_string(&hash);
     println!("{}", hex_hash);
+}
+
+#[test]
+fn verify_app() {
+    use clap::CommandFactory;
+    Cli::command().debug_assert()
 }
