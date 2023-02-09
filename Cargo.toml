@@ -4,7 +4,7 @@ version = "0.1.0-SNAPSHOT"
 authors = ["Florian Gamböck <mail@floga.de>"]
 edition = "2021"
 
-description = "Create cross platform hashes of text files."
+description = "Create cross-platform hashes of text files."
 repository = "https://github.com/FloGa/normalized-hasher"
 readme = "README.md"
 categories = ["algorithms", "command-line-utilities"]
