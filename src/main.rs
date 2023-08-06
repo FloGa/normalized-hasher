@@ -147,6 +147,19 @@ mod tests {
     }
 
     #[test]
+    fn check_empty_file() -> Result<(), Box<dyn Error>> {
+        let file = tempfile::NamedTempFile::new()?;
+
+        // Sanity check between hasher versions
+        let hash_expected = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+        let hash_actual = hash_file(file, None::<OsString>);
+
+        assert_eq!(hash_actual, hash_expected);
+
+        Ok(())
+    }
+
+    #[test]
     fn check_different_eols() -> Result<(), Box<dyn Error>> {
         let mut file_with_lf = tempfile::NamedTempFile::new()?;
         let mut file_with_crlf = tempfile::NamedTempFile::new()?;
