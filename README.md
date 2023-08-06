@@ -73,7 +73,7 @@ Usage: normalized-hasher <FILE_IN> [FILE_OUT]
 
 Arguments:
   <FILE_IN>   File to be hashed
-  [FILE_OUT]  File to write normalized input into
+  [FILE_OUT]  Optional file path to write normalized input into
 
 Options:
   -h, --help     Print help
