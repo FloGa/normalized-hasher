@@ -64,7 +64,7 @@ struct Cli {
     /// File to be hashed
     file_in: OsString,
 
-    /// File to write normalized input into
+    /// Optional file path to write normalized input into
     file_out: Option<OsString>,
 }
 
