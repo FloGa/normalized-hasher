@@ -103,8 +103,41 @@ fn main() {
     println!("{}", hash_file(cli.file_in, cli.file_out));
 }
 
-#[test]
-fn verify_app() {
-    use clap::CommandFactory;
-    Cli::command().debug_assert()
+#[cfg(test)]
+mod tests {
+    use std::error::Error;
+    use std::fs;
+
+    use tempfile;
+
+    use super::*;
+
+    #[test]
+    fn verify_app() {
+        use clap::CommandFactory;
+        Cli::command().debug_assert()
+    }
+
+    #[test]
+    fn check_different_eols() -> Result<(), Box<dyn Error>> {
+        let mut file_with_lf = tempfile::NamedTempFile::new()?;
+        let mut file_with_crlf = tempfile::NamedTempFile::new()?;
+
+        let file_with_lf_normalized = tempfile::NamedTempFile::new()?;
+        let file_with_crlf_normalized = tempfile::NamedTempFile::new()?;
+
+        file_with_lf.write_all("A\nb".as_ref())?;
+        file_with_crlf.write_all("A\r\nb".as_ref())?;
+
+        let hash_with_lf = hash_file(file_with_lf, Some(&file_with_lf_normalized));
+        let hash_with_crlf = hash_file(file_with_crlf, Some(&file_with_crlf_normalized));
+
+        assert_eq!(hash_with_lf, hash_with_crlf);
+        assert_eq!(
+            fs::read_to_string(file_with_lf_normalized)?,
+            fs::read_to_string(file_with_crlf_normalized)?
+        );
+
+        Ok(())
+    }
 }
