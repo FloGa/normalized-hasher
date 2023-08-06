@@ -1,10 +1,10 @@
 [package]
 name = "normalized-hasher"
-version = "0.1.0-SNAPSHOT"
+version = "0.1.0"
 authors = ["Florian Gamböck <mail@floga.de>"]
 edition = "2021"
 
-description = "Create cross platform hashes of text files."
+description = "Create cross-platform hashes of text files."
 repository = "https://github.com/FloGa/normalized-hasher"
 readme = "README.md"
 categories = ["algorithms", "command-line-utilities"]
@@ -15,6 +15,13 @@ include = ["src/main.rs", "LICENSE", "README.md"]
 [dependencies]
 sha2 = "0.10.6"
 
+[dependencies.clap]
+version = "4.1.4"
+features = ["derive"]
+
 [dependencies.base16ct]
-version = "0.1.1"
+version = "0.2.0"
 features = ["alloc"]
+
+[dev-dependencies]
+tempfile = "3.7.0"
