@@ -53,6 +53,7 @@
 use std::ffi::OsString;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::path::Path;
 
 use clap::Parser;
 use sha2::{Digest, Sha256};
@@ -67,12 +68,7 @@ struct Cli {
     file_out: Option<OsString>,
 }
 
-fn main() {
-    let cli = Cli::parse();
-
-    let file_in = cli.file_in;
-    let file_out = cli.file_out;
-
+fn hash_file(file_in: impl AsRef<Path>, file_out: Option<impl AsRef<Path>>) -> String {
     let file_in = File::open(file_in).unwrap();
     let file_in = BufReader::new(file_in);
 
@@ -98,8 +94,13 @@ fn main() {
 
     let hash = hasher.finalize();
 
-    let hex_hash = base16ct::lower::encode_string(&hash);
-    println!("{}", hex_hash);
+    base16ct::lower::encode_string(&hash)
+}
+
+fn main() {
+    let cli = Cli::parse();
+
+    println!("{}", hash_file(cli.file_in, cli.file_out));
 }
 
 #[test]
