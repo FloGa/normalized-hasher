@@ -116,7 +116,7 @@ fn hash_file(file_in: impl AsRef<Path>, file_out: Option<impl AsRef<Path>>) -> S
         hasher.update(&line);
 
         if let Some(file_out) = &mut file_out {
-            file_out.write(line.as_bytes()).unwrap();
+            file_out.write_all(line.as_bytes()).unwrap();
         }
     }
 
