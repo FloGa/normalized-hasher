@@ -22,3 +22,6 @@ features = ["derive"]
 [dependencies.base16ct]
 version = "0.1.1"
 features = ["alloc"]
+
+[dev-dependencies]
+tempfile = "3.7.0"
