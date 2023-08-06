@@ -1,6 +1,6 @@
 [package]
 name = "normalized-hasher"
-version = "0.1.0-SNAPSHOT"
+version = "0.1.0"
 authors = ["Florian Gamböck <mail@floga.de>"]
 edition = "2021"
 
@@ -20,7 +20,7 @@ version = "4.1.4"
 features = ["derive"]
 
 [dependencies.base16ct]
-version = "0.1.1"
+version = "0.2.0"
 features = ["alloc"]
 
 [dev-dependencies]
