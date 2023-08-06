@@ -19,7 +19,30 @@
 //!
 //! ## Motivation
 //!
-//! TBD
+//! Hashes or checksums are a great means for validating the contents of files.
+//! You record the hash of a file, distribute the file and the hash code, and
+//! everyone can run the hasher again to verify that the file has not changed
+//! since you created the hash the first time. Each small change will also change
+//! the hash code. Even if it is a change you cannot even see.
+//!
+//! In my job, we unfortunately had this situation a couple of times. The workflow
+//! is as follows: We create code and generate a hash from this code. Both are
+//! inserted into a specification document. Then we copy and paste the code to a
+//! customer's system and run the hasher again to verify that the code is still
+//! the same as in the specification. But from time to time, we got different
+//! hashes. After some search for the reason, we stumbled across this one coworker
+//! who did not save their files with UNIX line endings (a single LF) like the
+//! rest of us, but with Windows line endings (CR followed by LF). Just by looking
+//! at the files, they seemed identical, but after enabling control characters, we
+//! could clearly see the differences in the end of every line. By copying the
+//! code to the customer system, the line endings get automatically converted into
+//! UNIX style, hence the hash would be different from what we generate on our
+//! systems. This is an embarrassing situation, because this involves huge paper
+//! work to request a change in the already finalized specification document.
+//!
+//! To come over this problem, I created this program. A file hasher that would
+//! convert file endings to UNIX style on the fly when generating the hash. So, no
+//! matter how the file was created, the hash would be the same.
 //!
 //! ## Installation
 //!
@@ -36,6 +59,11 @@
 //! functionalities. The application might even fail to build if the public API of
 //! a dependency changed too much.
 //!
+//! Alternatively, pre-built binaries can be downloaded from the [GitHub
+//! releases][gh-releases] page.
+//!
+//! [gh-releases]: https://github.com/FloGa/normalized-hasher/releases
+//!
 //! ## Usage
 //!
 //! ```text
@@ -43,7 +71,7 @@
 //!
 //! Arguments:
 //!   <FILE_IN>   File to be hashed
-//!   [FILE_OUT]  File to write normalized input into
+//!   [FILE_OUT]  Optional file path to write normalized input into
 //!
 //! Options:
 //!   -h, --help     Print help
@@ -64,7 +92,7 @@ struct Cli {
     /// File to be hashed
     file_in: OsString,
 
-    /// File to write normalized input into
+    /// Optional file path to write normalized input into
     file_out: Option<OsString>,
 }
 
