@@ -100,14 +100,11 @@ fn hash_file(file_in: impl AsRef<Path>, file_out: Option<impl AsRef<Path>>) -> S
     let file_in = File::open(file_in).unwrap();
     let file_in = BufReader::new(file_in);
 
-    let mut file_out = match file_out {
-        Some(file_out) => {
-            let file_out = File::create(file_out).unwrap();
-            let file_out = BufWriter::new(file_out);
-            Some(file_out)
-        }
-        None => None,
-    };
+    let mut file_out = file_out.and_then(|file_out| {
+        let file_out = File::create(file_out).unwrap();
+        let file_out = BufWriter::new(file_out);
+        Some(file_out)
+    });
 
     let mut hasher = Sha256::new();
     for line in file_in.lines() {
