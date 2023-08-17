@@ -13,12 +13,9 @@ license.workspace = true
 include.workspace = true
 
 [dependencies]
-base16ct.workspace = true
-clap.workspace = true
-sha2.workspace = true
+normalized-hash.workspace = true
 
-[dev-dependencies]
-tempfile.workspace = true
+clap.workspace = true
 
 # --- Workspace configuration ---
 
@@ -31,6 +28,10 @@ license = "MIT"
 include = ["src/**/*", "LICENSE", "README.md"]
 
 [workspace.dependencies]
+
+# Internal dependencies
+
+normalized-hash = { version = "0.1.0-SNAPSHOT", path = "crates/normalized-hash" }
 
 # Runtime dependencies
 

@@ -17,6 +17,11 @@
 
 Create cross-platform hashes of text files.
 
+*This is the binary crate. If you're looking for the library crate instead, go
+to [`normalized-hash`].*
+
+[`normalized-hash`]: https://github.com/FloGa/normalized-hasher/crates/normalized-hash
+
 ## Motivation
 
 Hashes or checksums are a great means for validating the contents of files.
