@@ -4,6 +4,26 @@ use std::path::Path;
 
 use sha2::{Digest, Sha256};
 
+/// Create hash from a text file, regardless of line endings.
+///
+/// This function reads `file_in` linewise, replacing whatever line ending is present with a single
+/// line feed character (`\n`). From this, it generates a hash code.
+///
+/// Optionally, it is possible to write the normalized input to `file_out`.
+///
+/// # Example
+///
+/// ```no_run
+/// use std::path::PathBuf;
+/// use normalized_hash::hash_file;
+///
+/// let hash_without_output = hash_file(PathBuf::from("input.txt"), None::<PathBuf>);
+///
+/// let hash_with_output = hash_file(
+///     PathBuf::from("input.txt"),
+///     Some(PathBuf::from("output.txt"))
+/// );
+/// ```
 pub fn hash_file(file_in: impl AsRef<Path>, file_out: Option<impl AsRef<Path>>) -> String {
     let file_in = File::open(file_in).unwrap();
     let file_in = BufReader::new(file_in);
