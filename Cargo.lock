@@ -208,13 +208,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57bcfdad1b858c2db7c38303a6d2ad4dfaf5eb53dfeb0910128b2c26d6158503"
 
 [[package]]
+name = "normalized-hash"
+version = "0.1.0-SNAPSHOT"
+dependencies = [
+ "base16ct",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
 name = "normalized-hasher"
 version = "0.2.0-SNAPSHOT"
 dependencies = [
- "base16ct",
  "clap",
- "sha2",
- "tempfile",
+ "normalized-hash",
 ]
 
 [[package]]
