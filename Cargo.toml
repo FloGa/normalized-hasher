@@ -36,7 +36,7 @@ normalized-hash = { version = "0.1.0-SNAPSHOT", path = "crates/normalized-hash" 
 # Runtime dependencies
 
 base16ct = { version = "0.2.0", features = ["alloc"] }
-clap = { version = "4.1.4", features = ["derive"] }
+clap = { version = "4.3.22", features = ["derive"] }
 sha2 = "0.10.6"
 
 # Development / test dependencies
