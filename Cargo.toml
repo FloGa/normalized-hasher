@@ -13,12 +13,12 @@ license.workspace = true
 include.workspace = true
 
 [dependencies]
-base16ct = { version = "0.2.0", features = ["alloc"] }
-clap = { version = "4.1.4", features = ["derive"] }
-sha2 = "0.10.6"
+base16ct.workspace = true
+clap.workspace = true
+sha2.workspace = true
 
 [dev-dependencies]
-tempfile = "3.7.0"
+tempfile.workspace = true
 
 # --- Workspace configuration ---
 
@@ -29,3 +29,15 @@ repository = "https://github.com/FloGa/normalized-hasher"
 license = "MIT"
 
 include = ["src/**/*", "LICENSE", "README.md"]
+
+[workspace.dependencies]
+
+# Runtime dependencies
+
+base16ct = { version = "0.2.0", features = ["alloc"] }
+clap = { version = "4.1.4", features = ["derive"] }
+sha2 = "0.10.6"
+
+# Development / test dependencies
+
+tempfile = "3.7.0"
