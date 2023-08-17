@@ -2,17 +2,14 @@
 
 [![badge github]][url github]
 [![badge crates.io]][url crates.io]
-[![badge docs.rs]][url docs.rs]
 [![badge license]][url license]
 
 [badge github]: https://img.shields.io/badge/github-FloGa%2Fnormalized--hasher-green
 [badge crates.io]: https://img.shields.io/crates/v/normalized-hasher
-[badge docs.rs]: https://img.shields.io/docsrs/normalized-hasher
 [badge license]: https://img.shields.io/crates/l/normalized-hasher
 
 [url github]: https://github.com/FloGa/normalized-hasher
 [url crates.io]: https://crates.io/crates/normalized-hasher
-[url docs.rs]: https://docs.rs/normalized-hasher
 [url license]: https://github.com/FloGa/normalized-hasher/blob/develop/LICENSE
 
 Create cross-platform hashes of text files.
