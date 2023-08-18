@@ -35,11 +35,11 @@
 //! ```rust no_run
 //! use std::path::PathBuf;
 //!
-//! use normalized_hash::hash_file;
+//! use normalized_hash::Hasher;
 //!
 //! fn main() {
 //!     let file_in = PathBuf::from("input.txt");
-//!     let hash = hash_file(file_in, None::<PathBuf>);
+//!     let hash = Hasher::new().hash_file(file_in, None::<PathBuf>);
 //!     println!("{}", hash);
 //! }
 //! ```
@@ -50,50 +50,70 @@ use std::path::Path;
 
 use sha2::{Digest, Sha256};
 
-/// Create hash from a text file, regardless of line endings.
-///
-/// This function reads `file_in` linewise, replacing whatever line ending is present with a single
-/// line feed character (`\n`). From this, it generates a hash code.
-///
-/// Optionally, it is possible to write the normalized input to `file_out`.
-///
-/// # Example
-///
-/// ```no_run
-/// use std::path::PathBuf;
-/// use normalized_hash::hash_file;
-///
-/// let hash_without_output = hash_file(PathBuf::from("input.txt"), None::<PathBuf>);
-///
-/// let hash_with_output = hash_file(
-///     PathBuf::from("input.txt"),
-///     Some(PathBuf::from("output.txt"))
-/// );
-/// ```
-pub fn hash_file(file_in: impl AsRef<Path>, file_out: Option<impl AsRef<Path>>) -> String {
-    let file_in = File::open(file_in).unwrap();
-    let file_in = BufReader::new(file_in);
+pub struct Hasher {}
 
-    let mut file_out = file_out.and_then(|file_out| {
-        let file_out = File::create(file_out).unwrap();
-        let file_out = BufWriter::new(file_out);
-        Some(file_out)
-    });
-
-    let mut hasher = Sha256::new();
-    for line in file_in.lines() {
-        let line = line.unwrap();
-        let line = format!("{}\n", line);
-        hasher.update(&line);
-
-        if let Some(file_out) = &mut file_out {
-            file_out.write_all(line.as_bytes()).unwrap();
-        }
+impl Hasher {
+    /// Create new Hasher instance with default options.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use normalized_hash::Hasher;
+    /// let hasher = Hasher::new();
+    /// ```
+    pub fn new() -> Self {
+        Hasher {}
     }
 
-    let hash = hasher.finalize();
+    /// Create hash from a text file, regardless of line endings.
+    ///
+    /// This function reads `file_in` linewise, replacing whatever line ending is present with a
+    /// single line feed character (`\n`). From this, it generates a hash code.
+    ///
+    /// Optionally, it is possible to write the normalized input to `file_out`.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use std::path::PathBuf;
+    ///     use normalized_hash::Hasher;
+    ///
+    ///     let hash_without_output = Hasher::new().hash_file(PathBuf::from("input.txt"), None::<PathBuf>);
+    ///
+    ///     let hash_with_output = Hasher::new().hash_file(
+    ///     PathBuf::from("input.txt"),
+    ///     Some(PathBuf::from("output.txt"))
+    ///     );
+    /// ```
+    pub fn hash_file(
+        &self,
+        file_in: impl AsRef<Path>,
+        file_out: Option<impl AsRef<Path>>,
+    ) -> String {
+        let file_in = File::open(file_in).unwrap();
+        let file_in = BufReader::new(file_in);
 
-    base16ct::lower::encode_string(&hash)
+        let mut file_out = file_out.and_then(|file_out| {
+            let file_out = File::create(file_out).unwrap();
+            let file_out = BufWriter::new(file_out);
+            Some(file_out)
+        });
+
+        let mut hasher = Sha256::new();
+        for line in file_in.lines() {
+            let line = line.unwrap();
+            let line = format!("{}\n", line);
+            hasher.update(&line);
+
+            if let Some(file_out) = &mut file_out {
+                file_out.write_all(line.as_bytes()).unwrap();
+            }
+        }
+
+        let hash = hasher.finalize();
+
+        base16ct::lower::encode_string(&hash)
+    }
 }
 
 #[cfg(test)]
@@ -112,7 +132,7 @@ mod tests {
 
         // Sanity check between hasher versions
         let hash_expected = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-        let hash_actual = hash_file(file, None::<OsString>);
+        let hash_actual = Hasher::new().hash_file(file, None::<OsString>);
 
         assert_eq!(hash_actual, hash_expected);
 
@@ -130,8 +150,9 @@ mod tests {
         file_with_lf.write_all("A\nb".as_ref())?;
         file_with_crlf.write_all("A\r\nb".as_ref())?;
 
-        let hash_with_lf = hash_file(file_with_lf, Some(&file_with_lf_normalized));
-        let hash_with_crlf = hash_file(file_with_crlf, Some(&file_with_crlf_normalized));
+        let hash_with_lf = Hasher::new().hash_file(&file_with_lf, Some(&file_with_lf_normalized));
+        let hash_with_crlf =
+            Hasher::new().hash_file(&file_with_crlf, Some(&file_with_crlf_normalized));
 
         assert_eq!(hash_with_lf, hash_with_crlf);
         assert_eq!(

@@ -84,7 +84,7 @@ use std::ffi::OsString;
 
 use clap::Parser;
 
-use normalized_hash::hash_file;
+use normalized_hash::Hasher;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -99,7 +99,7 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
 
-    println!("{}", hash_file(cli.file_in, cli.file_out));
+    println!("{}", Hasher::new().hash_file(cli.file_in, cli.file_out));
 }
 
 #[cfg(test)]
