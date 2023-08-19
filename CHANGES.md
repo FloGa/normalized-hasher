@@ -11,7 +11,8 @@
     Please note that you need to escape control characters properly in your
     shell. For Bash, you can type:
 
-    ```shell normalized-hasher --eol $'\r\n' input.txt output.txt
+    ```shell
+    normalized-hasher --eol $'\r\n' input.txt output.txt
     ```
 
 -   Add no-eof flag
@@ -21,6 +22,12 @@
     desireable, like in Windows files. In contrast to UNIX files which
     usually end with a final LF, Windows files do not usually end with an
     additional CRLF.
+
+-   Add ignore-whitespaces flag
+
+    In some extreme cases, you might want to ignore all whitespaces in a
+    file. With the `--ignore-whitespaces` flag, all whitespaces are removed
+    prior to generate the hash.
 
 # Changes in 0.1.0
 

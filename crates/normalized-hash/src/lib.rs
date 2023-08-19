@@ -62,6 +62,7 @@ use sha2::{Digest, Sha256};
 
 pub struct Hasher {
     eol: String,
+    ignore_whitespaces: bool,
     no_eof: bool,
 }
 
@@ -69,6 +70,7 @@ impl Default for Hasher {
     fn default() -> Self {
         Self {
             eol: "\n".to_string(),
+            ignore_whitespaces: false,
             no_eof: false,
         }
     }
@@ -84,6 +86,11 @@ impl Hasher {
     /// -   `eol`: `"\n"`
     ///
     ///     End-of-line sequence, will be appended to each normalized line for hashing.
+    ///
+    /// -   `ignore_whitespaces`: `false`
+    ///
+    ///     Ignore all whitespaces. This will remove all whitespaces from the input file when
+    ///     generating the hash.
     ///
     /// -   `no_eof`: `false`
     ///
@@ -117,6 +124,14 @@ impl Hasher {
         self
     }
 
+    /// Ignore all whitespaces.
+    ///
+    /// This will remove all whitespaces from the input file when generating the hash.
+    pub fn ignore_whitespaces(mut self, ignore_whitespaces: bool) -> Self {
+        self.ignore_whitespaces = ignore_whitespaces;
+        self
+    }
+
     /// Skip last end-of-line on end-of-file.
     ///
     /// If this is set to true, no trailing EOL will be appended at the end of the file.
@@ -147,11 +162,12 @@ impl Hasher {
     /// use std::path::PathBuf;
     ///     use normalized_hash::Hasher;
     ///
-    ///     let hash_without_output = Hasher::new().hash_file(PathBuf::from("input.txt"), None::<PathBuf>);
+    ///     let hash_without_output = Hasher::new()
+    ///         .hash_file(PathBuf::from("input.txt"), None::<PathBuf>);
     ///
     ///     let hash_with_output = Hasher::new().hash_file(
-    ///     PathBuf::from("input.txt"),
-    ///     Some(PathBuf::from("output.txt"))
+    ///         PathBuf::from("input.txt"),
+    ///         Some(PathBuf::from("output.txt"))
     ///     );
     /// ```
     pub fn hash_file(
@@ -173,11 +189,19 @@ impl Hasher {
         let mut is_first_line = true;
         for line in file_in.lines() {
             let line = line.unwrap();
+
+            let line = if self.ignore_whitespaces {
+                line.replace(|c: char| c.is_whitespace(), "")
+            } else {
+                line
+            };
+
             let line = if !is_first_line {
                 format!("{}{}", &self.eol, line)
             } else {
                 line
             };
+
             hasher.update(&line);
 
             if let Some(file_out) = &mut file_out {
@@ -275,7 +299,7 @@ mod tests {
             ]
         }
 
-        fn hash_files(&self, hasher: Hasher) -> Result<(), Box<dyn Error>> {
+        fn hash_files(&self, hasher: &Hasher) -> Result<(String, String), Box<dyn Error>> {
             let mut hash_check = None;
             let mut content_check = None;
 
@@ -297,7 +321,11 @@ mod tests {
                 }
             }
 
-            Ok(())
+            let (Some(hash_check), Some(content_check)) = (hash_check, content_check) else {
+                unreachable!()
+            };
+
+            Ok((hash_check, content_check))
         }
     }
 
@@ -323,11 +351,11 @@ mod tests {
     #[test]
     fn check_default_options() -> Result<(), Box<dyn Error>> {
         let test_env = TestEnv::new()?;
-        test_env.hash_files(Hasher::new())?;
+        let (_, normalized_content) = test_env.hash_files(&Hasher::new())?;
 
         assert_eq!(
             fs::read_to_string(&test_env.file_with_lf)?,
-            fs::read_to_string(&test_env.normalized_file_with_lf)?,
+            normalized_content,
             "Normalized files do not have LF"
         );
 
@@ -337,11 +365,11 @@ mod tests {
     #[test]
     fn check_with_custom_eol() -> Result<(), Box<dyn Error>> {
         let test_env = TestEnv::new()?;
-        test_env.hash_files(Hasher::new().eol("\r\n"))?;
+        let (_, normalized_content) = test_env.hash_files(&Hasher::new().eol("\r\n"))?;
 
         assert_eq!(
             fs::read_to_string(&test_env.file_with_crlf)?,
-            fs::read_to_string(&test_env.normalized_file_with_crlf)?,
+            normalized_content,
             "Normalized files do not have CRLF"
         );
 
@@ -351,12 +379,38 @@ mod tests {
     #[test]
     fn check_without_eof() -> Result<(), Box<dyn Error>> {
         let test_env = TestEnv::new()?;
-        test_env.hash_files(Hasher::new().no_eof(true))?;
+        let (_, normalized_content) = test_env.hash_files(&Hasher::new().no_eof(true))?;
 
         assert_eq!(
             fs::read_to_string(&test_env.file_with_lf_noeof)?,
-            fs::read_to_string(&test_env.normalized_file_with_lf)?,
+            normalized_content,
             "Normalized files do not have LF without EOF"
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn check_ignore_spaces() -> Result<(), Box<dyn Error>> {
+        let test_env = TestEnv::new()?;
+        let hasher = Hasher::new().eol("").ignore_whitespaces(true).no_eof(true);
+        let (normalized_hash, normalized_content) = test_env.hash_files(&hasher)?;
+
+        let mut file_with_lf_without_spaces = NamedTempFile::new()?;
+        let normalized_file_with_lf_without_spaces = NamedTempFile::new()?;
+
+        file_with_lf_without_spaces.write_all("ABCD".as_bytes())?;
+
+        let hash = hasher.hash_file(
+            &file_with_lf_without_spaces,
+            Some(normalized_file_with_lf_without_spaces),
+        );
+
+        assert_eq!(hash, normalized_hash, "Hashes don't match");
+        assert_eq!(
+            fs::read_to_string(&file_with_lf_without_spaces)?,
+            normalized_content,
+            "Normalized files do not ignore white spaces"
         );
 
         Ok(())
