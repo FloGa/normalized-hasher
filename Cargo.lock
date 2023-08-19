@@ -243,7 +243,7 @@ checksum = "57bcfdad1b858c2db7c38303a6d2ad4dfaf5eb53dfeb0910128b2c26d6158503"
 
 [[package]]
 name = "normalized-hash"
-version = "0.1.0-RC"
+version = "0.1.0"
 dependencies = [
  "base16ct",
  "sha2",
@@ -252,7 +252,7 @@ dependencies = [
 
 [[package]]
 name = "normalized-hasher"
-version = "0.2.0-RC"
+version = "0.2.0"
 dependencies = [
  "clap",
  "normalized-hash",

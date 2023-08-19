@@ -1,4 +1,4 @@
-# Changes in 0.2.0-RC
+# Changes in 0.2.0
 
 -   Move library part to separate crate
 
