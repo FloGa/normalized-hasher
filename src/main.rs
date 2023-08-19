@@ -152,7 +152,7 @@ struct Cli {
     #[arg(long, default_value = "\n")]
     eol: String,
 
-    /// Skip last end-of-line on end-of-file.
+    /// Skip last end-of-line on end-of-file
     ///
     /// With this flag, no trailing EOL will be appended at the end of the file.
     #[arg(long)]
