@@ -104,3 +104,17 @@ Options:
     desireable, like in Windows files. In contrast to UNIX files which usually
     end with a final LF, Windows files do not usually end with an additional
     CRLF.
+
+## Examples
+
+Simple example with default options, without writing an output file:
+
+```shell
+normalized-hasher input.txt
+```
+
+More complex example, with writing output:
+
+```shell
+normalized-hasher --eol $'\r\n' --no-eof input.txt output.txt
+```
