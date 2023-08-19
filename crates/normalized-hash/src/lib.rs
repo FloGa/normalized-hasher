@@ -50,10 +50,28 @@ use std::path::Path;
 
 use sha2::{Digest, Sha256};
 
-pub struct Hasher {}
+pub struct Hasher {
+    eol: String,
+}
+
+impl Default for Hasher {
+    fn default() -> Self {
+        Self {
+            eol: "\n".to_string(),
+        }
+    }
+}
 
 impl Hasher {
     /// Create new Hasher instance with default options.
+    ///
+    /// # Defaults
+    ///
+    /// If not overwritten by the fluent API, the following defaults are valid:
+    ///
+    /// -   `eol`: `"\n"`
+    ///
+    ///     End-of-line sequence, will be appended to each normalized line for hashing.
     ///
     /// # Example
     ///
@@ -62,7 +80,24 @@ impl Hasher {
     /// let hasher = Hasher::new();
     /// ```
     pub fn new() -> Self {
-        Hasher {}
+        Default::default()
+    }
+
+    /// Change the eol sequence.
+    ///
+    /// This string will be appended to each normalized line for hashing.
+    ///
+    /// Defaults to `"\n"`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use normalized_hash::Hasher;
+    /// let hasher = Hasher::new().eol("\r\n");
+    /// ```
+    pub fn eol(mut self, eol: impl Into<String>) -> Self {
+        self.eol = eol.into();
+        self
     }
 
     /// Create hash from a text file, regardless of line endings.
@@ -102,7 +137,7 @@ impl Hasher {
         let mut hasher = Sha256::new();
         for line in file_in.lines() {
             let line = line.unwrap();
-            let line = format!("{}\n", line);
+            let line = format!("{}{}", line, &self.eol);
             hasher.update(&line);
 
             if let Some(file_out) = &mut file_out {
