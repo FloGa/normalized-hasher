@@ -52,12 +52,14 @@ use sha2::{Digest, Sha256};
 
 pub struct Hasher {
     eol: String,
+    no_eof: bool,
 }
 
 impl Default for Hasher {
     fn default() -> Self {
         Self {
             eol: "\n".to_string(),
+            no_eof: false,
         }
     }
 }
@@ -72,6 +74,11 @@ impl Hasher {
     /// -   `eol`: `"\n"`
     ///
     ///     End-of-line sequence, will be appended to each normalized line for hashing.
+    ///
+    /// -   `no_eof`: `false`
+    ///
+    ///     Skip last end-of-line on end-of-file. If this is set to true, no trailing EOL will be
+    ///     appended at the end of the file.
     ///
     /// # Example
     ///
@@ -97,6 +104,23 @@ impl Hasher {
     /// ```
     pub fn eol(mut self, eol: impl Into<String>) -> Self {
         self.eol = eol.into();
+        self
+    }
+
+    /// Skip last end-of-line on end-of-file.
+    ///
+    /// If this is set to true, no trailing EOL will be appended at the end of the file.
+    ///
+    /// Defaults to `false`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use normalized_hash::Hasher;
+    /// let hasher = Hasher::new().no_eof(true);
+    /// ```
+    pub fn no_eof(mut self, no_eof: bool) -> Self {
+        self.no_eof = no_eof;
         self
     }
 
@@ -135,13 +159,29 @@ impl Hasher {
         });
 
         let mut hasher = Sha256::new();
+
+        let mut is_first_line = true;
         for line in file_in.lines() {
             let line = line.unwrap();
-            let line = format!("{}{}", line, &self.eol);
+            let line = if !is_first_line {
+                format!("{}{}", &self.eol, line)
+            } else {
+                line
+            };
             hasher.update(&line);
 
             if let Some(file_out) = &mut file_out {
                 file_out.write_all(line.as_bytes()).unwrap();
+            }
+
+            is_first_line = false;
+        }
+
+        if !self.no_eof {
+            hasher.update(&self.eol);
+
+            if let Some(file_out) = &mut file_out {
+                file_out.write_all(&self.eol.as_bytes()).unwrap();
             }
         }
 
