@@ -147,17 +147,23 @@ mod tests {
         let file_with_lf_normalized = tempfile::NamedTempFile::new()?;
         let file_with_crlf_normalized = tempfile::NamedTempFile::new()?;
 
-        file_with_lf.write_all("A\nb".as_ref())?;
+        file_with_lf.write_all("A\nb\n".as_ref())?;
         file_with_crlf.write_all("A\r\nb".as_ref())?;
 
         let hash_with_lf = Hasher::new().hash_file(&file_with_lf, Some(&file_with_lf_normalized));
         let hash_with_crlf =
             Hasher::new().hash_file(&file_with_crlf, Some(&file_with_crlf_normalized));
 
-        assert_eq!(hash_with_lf, hash_with_crlf);
+        assert_eq!(hash_with_lf, hash_with_crlf, "Hashes don't match");
         assert_eq!(
-            fs::read_to_string(file_with_lf_normalized)?,
-            fs::read_to_string(file_with_crlf_normalized)?
+            fs::read_to_string(&file_with_lf_normalized)?,
+            fs::read_to_string(&file_with_crlf_normalized)?,
+            "Normalized files don't match"
+        );
+        assert_eq!(
+            fs::read_to_string(&file_with_lf)?,
+            fs::read_to_string(&file_with_lf_normalized)?,
+            "Normalized files do not have LF"
         );
 
         Ok(())
