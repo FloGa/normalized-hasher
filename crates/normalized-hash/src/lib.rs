@@ -62,6 +62,7 @@ use sha2::{Digest, Sha256};
 
 pub struct Hasher {
     eol: String,
+    ignore_whitespaces: bool,
     no_eof: bool,
 }
 
@@ -69,6 +70,7 @@ impl Default for Hasher {
     fn default() -> Self {
         Self {
             eol: "\n".to_string(),
+            ignore_whitespaces: false,
             no_eof: false,
         }
     }
@@ -84,6 +86,11 @@ impl Hasher {
     /// -   `eol`: `"\n"`
     ///
     ///     End-of-line sequence, will be appended to each normalized line for hashing.
+    ///
+    /// -   `ignore_whitespaces`: `false`
+    ///
+    ///     Ignore all whitespaces. This will remove all whitespaces from the input file when
+    ///     generating the hash.
     ///
     /// -   `no_eof`: `false`
     ///
@@ -114,6 +121,14 @@ impl Hasher {
     /// ```
     pub fn eol(mut self, eol: impl Into<String>) -> Self {
         self.eol = eol.into();
+        self
+    }
+
+    /// Ignore all whitespaces.
+    ///
+    /// This will remove all whitespaces from the input file when generating the hash.
+    pub fn ignore_whitespaces(mut self, ignore_whitespaces: bool) -> Self {
+        self.ignore_whitespaces = ignore_whitespaces;
         self
     }
 
@@ -173,11 +188,19 @@ impl Hasher {
         let mut is_first_line = true;
         for line in file_in.lines() {
             let line = line.unwrap();
+
+            let line = if self.ignore_whitespaces {
+                line.replace(|c: char| c.is_whitespace(), "")
+            } else {
+                line
+            };
+
             let line = if !is_first_line {
                 format!("{}{}", &self.eol, line)
             } else {
                 line
             };
+
             hasher.update(&line);
 
             if let Some(file_out) = &mut file_out {
@@ -297,7 +320,9 @@ mod tests {
                 }
             }
 
-            let (Some(hash_check), Some(content_check)) = (hash_check, content_check)else{ unreachable!() };
+            let (Some(hash_check), Some(content_check)) = (hash_check, content_check) else {
+                unreachable!()
+            };
 
             Ok((hash_check, content_check))
         }
