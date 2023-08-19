@@ -19,3 +19,11 @@
     file. On Windows systems, this is usually not the case. To handle use
     cases where this EOF character might be important, it is now
     configurable wether to include such a last EOL on EOF.
+
+-   Support ignoring whitespaces
+
+    There might be extreme use cases where you don't just want to have
+    consistent line endings, but you don't even want to consider any other
+    whitespaces in a file. With this new configuration option, all
+    whitespaces are removed from the normalized content when generating the
+    hash.
