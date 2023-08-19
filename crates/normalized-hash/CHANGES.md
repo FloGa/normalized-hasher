@@ -1,4 +1,4 @@
-# Changes since latest release
+# Changes in 0.1.0-RC
 
 -   Create crate from library part of normalized-hasher
 

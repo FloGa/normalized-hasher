@@ -1,6 +1,6 @@
 [package]
 name = "normalized-hasher"
-version = "0.2.0-SNAPSHOT"
+version = "0.2.0-RC"
 description = "Create cross-platform hashes of text files."
 readme = "README.md"
 categories = ["algorithms", "command-line-utilities"]
@@ -31,7 +31,7 @@ include = ["src/**/*", "LICENSE", "README.md"]
 
 # Internal dependencies
 
-normalized-hash = { version = "0.1.0-SNAPSHOT", path = "crates/normalized-hash" }
+normalized-hash = { version = "0.1.0-RC", path = "crates/normalized-hash" }
 
 # Runtime dependencies
 
