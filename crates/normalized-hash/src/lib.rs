@@ -165,45 +165,63 @@ mod tests {
 
     struct TestEnv {
         file_with_crlf: NamedTempFile,
+        file_with_crlf_noeof: NamedTempFile,
         file_with_lf: NamedTempFile,
+        file_with_lf_noeof: NamedTempFile,
 
         normalized_file_with_crlf: NamedTempFile,
+        normalized_file_with_crlf_noeof: NamedTempFile,
         normalized_file_with_lf: NamedTempFile,
+        normalized_file_with_lf_noeof: NamedTempFile,
     }
 
     impl TestEnv {
         fn new() -> Result<Self, std::io::Error> {
             let mut file_with_crlf = NamedTempFile::new()?;
+            let mut file_with_crlf_noeof = NamedTempFile::new()?;
             let mut file_with_lf = NamedTempFile::new()?;
+            let mut file_with_lf_noeof = NamedTempFile::new()?;
 
+            let normalized_file_with_crlf_noeof = NamedTempFile::new()?;
             let normalized_file_with_crlf = NamedTempFile::new()?;
+            let normalized_file_with_lf_noeof = NamedTempFile::new()?;
             let normalized_file_with_lf = NamedTempFile::new()?;
 
             let content = vec!["A B", "C D"];
 
             file_with_crlf.write_all(content.join("\r\n").add("\r\n").as_bytes())?;
+            file_with_crlf_noeof.write_all(content.join("\r\n").as_bytes())?;
             file_with_lf.write_all(content.join("\n").add("\n").as_bytes())?;
+            file_with_lf_noeof.write_all(content.join("\n").as_bytes())?;
 
             Ok(TestEnv {
                 file_with_crlf,
+                file_with_crlf_noeof,
                 file_with_lf,
+                file_with_lf_noeof,
 
                 normalized_file_with_crlf,
+                normalized_file_with_crlf_noeof,
                 normalized_file_with_lf,
+                normalized_file_with_lf_noeof,
             })
         }
 
         fn get_input_files(&self) -> Vec<&NamedTempFile> {
             vec![
                 &self.file_with_crlf,
+                &self.file_with_crlf_noeof,
                 &self.file_with_lf,
+                &self.file_with_lf_noeof,
             ]
         }
 
         fn get_output_files(&self) -> Vec<&NamedTempFile> {
             vec![
                 &self.normalized_file_with_crlf,
+                &self.normalized_file_with_crlf_noeof,
                 &self.normalized_file_with_lf,
+                &self.normalized_file_with_lf_noeof,
             ]
         }
 
@@ -247,7 +265,7 @@ mod tests {
     }
 
     #[test]
-    fn check_different_eols() -> Result<(), Box<dyn Error>> {
+    fn check_default_options() -> Result<(), Box<dyn Error>> {
         let test_env = TestEnv::new()?;
         test_env.hash_files(Hasher::new())?;
 
@@ -255,6 +273,20 @@ mod tests {
             fs::read_to_string(&test_env.file_with_lf)?,
             fs::read_to_string(&test_env.normalized_file_with_lf)?,
             "Normalized files do not have LF"
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn check_with_custom_eol() -> Result<(), Box<dyn Error>> {
+        let test_env = TestEnv::new()?;
+        test_env.hash_files(Hasher::new().eol("\r\n"))?;
+
+        assert_eq!(
+            fs::read_to_string(&test_env.file_with_crlf)?,
+            fs::read_to_string(&test_env.normalized_file_with_crlf)?,
+            "Normalized files do not have CRLF"
         );
 
         Ok(())
