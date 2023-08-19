@@ -257,7 +257,7 @@ mod tests {
 
         // Sanity check between hasher versions
         let hash_expected = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-        let hash_actual = Hasher::new().hash_file(file, None::<OsString>);
+        let hash_actual = Hasher::new().eol("").hash_file(file, None::<OsString>);
 
         assert_eq!(hash_actual, hash_expected);
 
