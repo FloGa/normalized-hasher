@@ -121,14 +121,86 @@ mod tests {
     use std::error::Error;
     use std::ffi::OsString;
     use std::fs;
+    use std::iter::zip;
+    use std::ops::Add;
 
-    use tempfile;
+    use tempfile::NamedTempFile;
 
     use super::*;
 
+    struct TestEnv {
+        file_with_crlf: NamedTempFile,
+        file_with_lf: NamedTempFile,
+
+        normalized_file_with_crlf: NamedTempFile,
+        normalized_file_with_lf: NamedTempFile,
+    }
+
+    impl TestEnv {
+        fn new() -> Result<Self, std::io::Error> {
+            let mut file_with_crlf = NamedTempFile::new()?;
+            let mut file_with_lf = NamedTempFile::new()?;
+
+            let normalized_file_with_crlf = NamedTempFile::new()?;
+            let normalized_file_with_lf = NamedTempFile::new()?;
+
+            let content = vec!["A B", "C D"];
+
+            file_with_crlf.write_all(content.join("\r\n").add("\r\n").as_bytes())?;
+            file_with_lf.write_all(content.join("\n").add("\n").as_bytes())?;
+
+            Ok(TestEnv {
+                file_with_crlf,
+                file_with_lf,
+
+                normalized_file_with_crlf,
+                normalized_file_with_lf,
+            })
+        }
+
+        fn get_input_files(&self) -> Vec<&NamedTempFile> {
+            vec![
+                &self.file_with_crlf,
+                &self.file_with_lf,
+            ]
+        }
+
+        fn get_output_files(&self) -> Vec<&NamedTempFile> {
+            vec![
+                &self.normalized_file_with_crlf,
+                &self.normalized_file_with_lf,
+            ]
+        }
+
+        fn hash_files(&self, hasher: Hasher) -> Result<(), Box<dyn Error>> {
+            let mut hash_check = None;
+            let mut content_check = None;
+
+            for (file_in, file_out) in zip(self.get_input_files(), self.get_output_files()) {
+                let hash = hasher.hash_file(file_in, Some(file_out));
+
+                if hash_check.is_none() {
+                    hash_check = Some(hash.clone());
+                    content_check = Some(fs::read_to_string(file_out)?)
+                }
+
+                if let (Some(hash_check), Some(content_check)) = (&hash_check, &content_check) {
+                    assert_eq!(&hash, hash_check, "Hashes don't match");
+                    assert_eq!(
+                        &fs::read_to_string(file_out)?,
+                        content_check,
+                        "Normalized files don't match"
+                    );
+                }
+            }
+
+            Ok(())
+        }
+    }
+
     #[test]
     fn check_empty_file() -> Result<(), Box<dyn Error>> {
-        let file = tempfile::NamedTempFile::new()?;
+        let file = NamedTempFile::new()?;
 
         // Sanity check between hasher versions
         let hash_expected = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
@@ -141,28 +213,12 @@ mod tests {
 
     #[test]
     fn check_different_eols() -> Result<(), Box<dyn Error>> {
-        let mut file_with_lf = tempfile::NamedTempFile::new()?;
-        let mut file_with_crlf = tempfile::NamedTempFile::new()?;
+        let test_env = TestEnv::new()?;
+        test_env.hash_files(Hasher::new())?;
 
-        let file_with_lf_normalized = tempfile::NamedTempFile::new()?;
-        let file_with_crlf_normalized = tempfile::NamedTempFile::new()?;
-
-        file_with_lf.write_all("A\nb\n".as_ref())?;
-        file_with_crlf.write_all("A\r\nb".as_ref())?;
-
-        let hash_with_lf = Hasher::new().hash_file(&file_with_lf, Some(&file_with_lf_normalized));
-        let hash_with_crlf =
-            Hasher::new().hash_file(&file_with_crlf, Some(&file_with_crlf_normalized));
-
-        assert_eq!(hash_with_lf, hash_with_crlf, "Hashes don't match");
         assert_eq!(
-            fs::read_to_string(&file_with_lf_normalized)?,
-            fs::read_to_string(&file_with_crlf_normalized)?,
-            "Normalized files don't match"
-        );
-        assert_eq!(
-            fs::read_to_string(&file_with_lf)?,
-            fs::read_to_string(&file_with_lf_normalized)?,
+            fs::read_to_string(&test_env.file_with_lf)?,
+            fs::read_to_string(&test_env.normalized_file_with_lf)?,
             "Normalized files do not have LF"
         );
 
