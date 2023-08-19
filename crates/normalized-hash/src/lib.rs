@@ -296,9 +296,15 @@ mod tests {
         let file = NamedTempFile::new()?;
 
         // Sanity check between hasher versions
-        let hash_expected = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-        let hash_actual = Hasher::new().eol("").hash_file(file, None::<OsString>);
 
+        // Completely empty file
+        let hash_expected = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+        let hash_actual = Hasher::new().eol("").hash_file(&file, None::<OsString>);
+        assert_eq!(hash_actual, hash_expected);
+
+        // Empty file ending in LF
+        let hash_expected = "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b";
+        let hash_actual = Hasher::new().hash_file(&file, None::<OsString>);
         assert_eq!(hash_actual, hash_expected);
 
         Ok(())
