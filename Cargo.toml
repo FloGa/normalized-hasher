@@ -1,27 +1,44 @@
 [package]
 name = "normalized-hasher"
-version = "0.1.0"
-authors = ["Florian Gamböck <mail@floga.de>"]
-edition = "2021"
-
+version = "0.2.0"
 description = "Create cross-platform hashes of text files."
-repository = "https://github.com/FloGa/normalized-hasher"
 readme = "README.md"
 categories = ["algorithms", "command-line-utilities"]
 keywords = ["cli", "hash", "newline"]
-license = "MIT"
-include = ["src/main.rs", "LICENSE", "README.md"]
+
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+include.workspace = true
 
 [dependencies]
+normalized-hash.workspace = true
+
+clap.workspace = true
+
+# --- Workspace configuration ---
+
+[workspace.package]
+authors = ["Florian Gamböck <mail@floga.de>"]
+edition = "2021"
+repository = "https://github.com/FloGa/normalized-hasher"
+license = "MIT"
+
+include = ["src/**/*", "LICENSE", "README.md"]
+
+[workspace.dependencies]
+
+# Internal dependencies
+
+normalized-hash = { version = "0.1.0", path = "crates/normalized-hash" }
+
+# Runtime dependencies
+
+base16ct = { version = "0.2.0", features = ["alloc"] }
+clap = { version = "4.3.22", features = ["derive"] }
 sha2 = "0.10.6"
 
-[dependencies.clap]
-version = "4.1.4"
-features = ["derive"]
+# Development / test dependencies
 
-[dependencies.base16ct]
-version = "0.2.0"
-features = ["alloc"]
-
-[dev-dependencies]
 tempfile = "3.7.0"

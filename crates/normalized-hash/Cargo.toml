@@ -1,0 +1,20 @@
+[package]
+name = "normalized-hash"
+version = "0.1.0"
+description = "Cross-platform hash algorithm."
+readme = "README.md"
+categories = ["algorithms"]
+keywords = ["hash", "newline"]
+
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+include.workspace = true
+
+[dependencies]
+base16ct.workspace = true
+sha2.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

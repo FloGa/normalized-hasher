@@ -2,20 +2,22 @@
 
 [![badge github]][url github]
 [![badge crates.io]][url crates.io]
-[![badge docs.rs]][url docs.rs]
 [![badge license]][url license]
 
 [badge github]: https://img.shields.io/badge/github-FloGa%2Fnormalized--hasher-green
 [badge crates.io]: https://img.shields.io/crates/v/normalized-hasher
-[badge docs.rs]: https://img.shields.io/docsrs/normalized-hasher
 [badge license]: https://img.shields.io/crates/l/normalized-hasher
 
 [url github]: https://github.com/FloGa/normalized-hasher
 [url crates.io]: https://crates.io/crates/normalized-hasher
-[url docs.rs]: https://docs.rs/normalized-hasher
 [url license]: https://github.com/FloGa/normalized-hasher/blob/develop/LICENSE
 
 Create cross-platform hashes of text files.
+
+*This is the binary crate. If you're looking for the library crate instead, go
+to [`normalized-hash`].*
+
+[`normalized-hash`]: https://github.com/FloGa/normalized-hasher/crates/normalized-hash
 
 ## Motivation
 
@@ -48,7 +50,7 @@ matter how the file was created, the hash would be the same.
 
 `normalized-hasher` can be installed easily through Cargo via `crates.io`:
 
-```shell script
+```shell
 cargo install --locked normalized-hasher
 ```
 
@@ -69,13 +71,77 @@ releases][gh-releases] page.
 <!--% !cargo --quiet run -- --help | tail -n+3 %-->
 
 ```text
-Usage: normalized-hasher <FILE_IN> [FILE_OUT]
+Usage: normalized-hasher [OPTIONS] <FILE_IN> [FILE_OUT]
 
 Arguments:
-  <FILE_IN>   File to be hashed
-  [FILE_OUT]  Optional file path to write normalized input into
+  <FILE_IN>
+          File to be hashed
+
+  [FILE_OUT]
+          Optional file path to write normalized input into
 
 Options:
-  -h, --help     Print help
-  -V, --version  Print version
+      --eol <EOL>
+          End-of-line sequence, will be appended to each normalized line for hashing
+          
+          [default: "\n"]
+
+      --ignore-whitespaces
+          Ignore all whitespaces
+          
+          This will remove all whitespaces from the input file when generating the hash.
+
+      --no-eof
+          Skip last end-of-line on end-of-file
+          
+          With this flag, no trailing EOL will be appended at the end of the file.
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
+```
+
+### Flags
+
+-   `--eol`
+    
+    With the `--eol` flag you can change the end-of-line sequence that will be
+    appended to each normalized line to generate the hash. This can be useful
+    if you explicitly want CRLF endings, for example.
+    
+    Please note that you need to escape control characters properly in your
+    shell. For Bash, you can type:
+    
+    ```shell
+    normalized-hasher --eol $'\r\n' input.txt output.txt
+    ```
+    
+-   `--ignore-whitespaces`
+    
+    In some extreme cases, you might want to ignore all whitespaces in a file.
+    With the `--ignore-whitespaces` flag, all whitespaces are removed prior to
+    generate the hash.
+
+-   `--no-eof`
+
+    With the `--no-eof` flag you can avoid appending the EOL sequence at the
+    end of the file. This is for use cases where such trailing EOL is not
+    desireable, like in Windows files. In contrast to UNIX files which usually
+    end with a final LF, Windows files do not usually end with an additional
+    CRLF.
+
+## Examples
+
+Simple example with default options, without writing an output file:
+
+```shell
+normalized-hasher input.txt
+```
+
+More complex example, with writing output:
+
+```shell
+normalized-hasher --eol $'\r\n' --no-eof input.txt output.txt
 ```
