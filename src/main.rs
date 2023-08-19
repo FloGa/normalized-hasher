@@ -98,6 +98,12 @@ struct Cli {
     /// End-of-line sequence, will be appended to each normalized line for hashing
     #[arg(long, default_value = "\n")]
     eol: String,
+
+    /// Skip last end-of-line on end-of-file.
+    ///
+    /// With this flag, no trailing EOL will be appended at the end of the file.
+    #[arg(long)]
+    no_eof: bool,
 }
 
 fn main() {
@@ -107,6 +113,7 @@ fn main() {
         "{}",
         Hasher::new()
             .eol(cli.eol)
+            .no_eof(cli.no_eof)
             .hash_file(cli.file_in, cli.file_out)
     );
 }
