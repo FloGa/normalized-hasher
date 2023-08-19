@@ -162,11 +162,12 @@ impl Hasher {
     /// use std::path::PathBuf;
     ///     use normalized_hash::Hasher;
     ///
-    ///     let hash_without_output = Hasher::new().hash_file(PathBuf::from("input.txt"), None::<PathBuf>);
+    ///     let hash_without_output = Hasher::new()
+    ///         .hash_file(PathBuf::from("input.txt"), None::<PathBuf>);
     ///
     ///     let hash_with_output = Hasher::new().hash_file(
-    ///     PathBuf::from("input.txt"),
-    ///     Some(PathBuf::from("output.txt"))
+    ///         PathBuf::from("input.txt"),
+    ///         Some(PathBuf::from("output.txt"))
     ///     );
     /// ```
     pub fn hash_file(
