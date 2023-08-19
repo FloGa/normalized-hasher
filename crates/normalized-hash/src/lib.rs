@@ -275,7 +275,7 @@ mod tests {
             ]
         }
 
-        fn hash_files(&self, hasher: Hasher) -> Result<(), Box<dyn Error>> {
+        fn hash_files(&self, hasher: &Hasher) -> Result<(String, String), Box<dyn Error>> {
             let mut hash_check = None;
             let mut content_check = None;
 
@@ -297,7 +297,9 @@ mod tests {
                 }
             }
 
-            Ok(())
+            let (Some(hash_check), Some(content_check)) = (hash_check, content_check)else{ unreachable!() };
+
+            Ok((hash_check, content_check))
         }
     }
 
@@ -323,11 +325,11 @@ mod tests {
     #[test]
     fn check_default_options() -> Result<(), Box<dyn Error>> {
         let test_env = TestEnv::new()?;
-        test_env.hash_files(Hasher::new())?;
+        let (_, normalized_content) = test_env.hash_files(&Hasher::new())?;
 
         assert_eq!(
             fs::read_to_string(&test_env.file_with_lf)?,
-            fs::read_to_string(&test_env.normalized_file_with_lf)?,
+            normalized_content,
             "Normalized files do not have LF"
         );
 
@@ -337,11 +339,11 @@ mod tests {
     #[test]
     fn check_with_custom_eol() -> Result<(), Box<dyn Error>> {
         let test_env = TestEnv::new()?;
-        test_env.hash_files(Hasher::new().eol("\r\n"))?;
+        let (_, normalized_content) = test_env.hash_files(&Hasher::new().eol("\r\n"))?;
 
         assert_eq!(
             fs::read_to_string(&test_env.file_with_crlf)?,
-            fs::read_to_string(&test_env.normalized_file_with_crlf)?,
+            normalized_content,
             "Normalized files do not have CRLF"
         );
 
@@ -351,11 +353,11 @@ mod tests {
     #[test]
     fn check_without_eof() -> Result<(), Box<dyn Error>> {
         let test_env = TestEnv::new()?;
-        test_env.hash_files(Hasher::new().no_eof(true))?;
+        let (_, normalized_content) = test_env.hash_files(&Hasher::new().no_eof(true))?;
 
         assert_eq!(
             fs::read_to_string(&test_env.file_with_lf_noeof)?,
-            fs::read_to_string(&test_env.normalized_file_with_lf)?,
+            normalized_content,
             "Normalized files do not have LF without EOF"
         );
 
