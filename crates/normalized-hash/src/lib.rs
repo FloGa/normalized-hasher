@@ -388,4 +388,30 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn check_ignore_spaces() -> Result<(), Box<dyn Error>> {
+        let test_env = TestEnv::new()?;
+        let hasher = Hasher::new().eol("").ignore_whitespaces(true).no_eof(true);
+        let (normalized_hash, normalized_content) = test_env.hash_files(&hasher)?;
+
+        let mut file_with_lf_without_spaces = NamedTempFile::new()?;
+        let normalized_file_with_lf_without_spaces = NamedTempFile::new()?;
+
+        file_with_lf_without_spaces.write_all("ABCD".as_bytes())?;
+
+        let hash = hasher.hash_file(
+            &file_with_lf_without_spaces,
+            Some(normalized_file_with_lf_without_spaces),
+        );
+
+        assert_eq!(hash, normalized_hash, "Hashes don't match");
+        assert_eq!(
+            fs::read_to_string(&file_with_lf_without_spaces)?,
+            normalized_content,
+            "Normalized files do not ignore white spaces"
+        );
+
+        Ok(())
+    }
 }
