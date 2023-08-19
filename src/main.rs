@@ -94,12 +94,21 @@ struct Cli {
 
     /// Optional file path to write normalized input into
     file_out: Option<OsString>,
+
+    /// End-of-line sequence, will be appended to each normalized line for hashing
+    #[arg(long, default_value = "\n")]
+    eol: String,
 }
 
 fn main() {
     let cli = Cli::parse();
 
-    println!("{}", Hasher::new().hash_file(cli.file_in, cli.file_out));
+    println!(
+        "{}",
+        Hasher::new()
+            .eol(cli.eol)
+            .hash_file(cli.file_in, cli.file_out)
+    );
 }
 
 #[cfg(test)]
