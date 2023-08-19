@@ -84,8 +84,13 @@
 //!
 //!           [default: "\n"]
 //!
+//!       --ignore-whitespaces
+//!           Ignore all whitespaces
+//!
+//!           This will remove all whitespaces from the input file when generating the hash.
+//!
 //!       --no-eof
-//!           Skip last end-of-line on end-of-file.
+//!           Skip last end-of-line on end-of-file
 //!
 //!           With this flag, no trailing EOL will be appended at the end of the file.
 //!
@@ -110,6 +115,12 @@
 //!     ```shell
 //!     normalized-hasher --eol $'\r\n' input.txt output.txt
 //!     ```
+//!
+//! -   `--ignore-whitespaces`
+//!
+//!     In some extreme cases, you might want to ignore all whitespaces in a file.
+//!     With the `--ignore-whitespaces` flag, all whitespaces are removed prior to
+//!     generate the hash.
 //!
 //! -   `--no-eof`
 //!

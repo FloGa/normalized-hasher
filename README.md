@@ -86,8 +86,13 @@ Options:
           
           [default: "\n"]
 
+      --ignore-whitespaces
+          Ignore all whitespaces
+          
+          This will remove all whitespaces from the input file when generating the hash.
+
       --no-eof
-          Skip last end-of-line on end-of-file.
+          Skip last end-of-line on end-of-file
           
           With this flag, no trailing EOL will be appended at the end of the file.
 
