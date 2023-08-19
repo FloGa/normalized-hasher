@@ -331,4 +331,18 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn check_without_eof() -> Result<(), Box<dyn Error>> {
+        let test_env = TestEnv::new()?;
+        test_env.hash_files(Hasher::new().no_eof(true))?;
+
+        assert_eq!(
+            fs::read_to_string(&test_env.file_with_lf_noeof)?,
+            fs::read_to_string(&test_env.normalized_file_with_lf)?,
+            "Normalized files do not have LF without EOF"
+        );
+
+        Ok(())
+    }
 }
