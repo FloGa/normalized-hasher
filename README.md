@@ -113,6 +113,12 @@ Options:
     normalized-hasher --eol $'\r\n' input.txt output.txt
     ```
     
+-   `--ignore-whitespaces`
+    
+    In some extreme cases, you might want to ignore all whitespaces in a file.
+    With the `--ignore-whitespaces` flag, all whitespaces are removed prior to
+    generate the hash.
+
 -   `--no-eof`
 
     With the `--no-eof` flag you can avoid appending the EOL sequence at the
