@@ -81,3 +81,18 @@ Options:
   -h, --help     Print help
   -V, --version  Print version
 ```
+
+### Flags
+
+-   `--eol`
+    
+    With the `--eol` flag you can change the end-of-line sequence that will be
+    appended to each normalized line to generate the hash. This can be useful
+    if you explicitly want CRLF endings, for example.
+    
+    Please note that you need to escape control characters properly in your
+    shell. For Bash, you can type:
+    
+    ```shell
+    normalized-hasher --eol $'\r\n' input.txt output.txt
+    ```
