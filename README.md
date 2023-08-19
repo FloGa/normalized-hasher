@@ -71,15 +71,31 @@ releases][gh-releases] page.
 <!--% !cargo --quiet run -- --help | tail -n+3 %-->
 
 ```text
-Usage: normalized-hasher <FILE_IN> [FILE_OUT]
+Usage: normalized-hasher [OPTIONS] <FILE_IN> [FILE_OUT]
 
 Arguments:
-  <FILE_IN>   File to be hashed
-  [FILE_OUT]  Optional file path to write normalized input into
+  <FILE_IN>
+          File to be hashed
+
+  [FILE_OUT]
+          Optional file path to write normalized input into
 
 Options:
-  -h, --help     Print help
-  -V, --version  Print version
+      --eol <EOL>
+          End-of-line sequence, will be appended to each normalized line for hashing
+          
+          [default: "\n"]
+
+      --no-eof
+          Skip last end-of-line on end-of-file.
+          
+          With this flag, no trailing EOL will be appended at the end of the file.
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
 ```
 
 ### Flags
