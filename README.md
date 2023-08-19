@@ -96,3 +96,11 @@ Options:
     ```shell
     normalized-hasher --eol $'\r\n' input.txt output.txt
     ```
+    
+-   `--no-eof`
+
+    With the `--no-eof` flag you can avoid appending the EOL sequence at the
+    end of the file. This is for use cases where such trailing EOL is not
+    desireable, like in Windows files. In contrast to UNIX files which usually
+    end with a final LF, Windows files do not usually end with an additional
+    CRLF.
