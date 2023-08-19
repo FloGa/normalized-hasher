@@ -50,7 +50,7 @@ matter how the file was created, the hash would be the same.
 
 `normalized-hasher` can be installed easily through Cargo via `crates.io`:
 
-```shell script
+```shell
 cargo install --locked normalized-hasher
 ```
 
