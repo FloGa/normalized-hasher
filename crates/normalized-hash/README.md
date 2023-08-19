@@ -35,11 +35,21 @@ and why you should want to even care about such a case, head over to
 ```rust no_run
 use std::path::PathBuf;
 
-use normalized_hash::hash_file;
+use normalized_hash::Hasher;
 
 fn main() {
     let file_in = PathBuf::from("input.txt");
-    let hash = hash_file(file_in, None::<PathBuf>);
+    let file_out = PathBuf::from("output.txt");
+
+    // Simple example with default options, without writing an output file
+    let hash = Hasher::new().hash_file(&file_in, None::<PathBuf>);
+    println!("{}", hash);
+
+    // More complex example, with writing output
+    let hash = Hasher::new()
+        .eol("\r\n")
+        .no_eof(true)
+        .hash_file(&file_in, Some(file_out));
     println!("{}", hash);
 }
 ```

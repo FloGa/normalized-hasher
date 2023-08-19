@@ -35,11 +35,21 @@
 //! ```rust no_run
 //! use std::path::PathBuf;
 //!
-//! use normalized_hash::hash_file;
+//! use normalized_hash::Hasher;
 //!
 //! fn main() {
 //!     let file_in = PathBuf::from("input.txt");
-//!     let hash = hash_file(file_in, None::<PathBuf>);
+//!     let file_out = PathBuf::from("output.txt");
+//!
+//!     // Simple example with default options, without writing an output file
+//!     let hash = Hasher::new().hash_file(&file_in, None::<PathBuf>);
+//!     println!("{}", hash);
+//!
+//!     // More complex example, with writing output
+//!     let hash = Hasher::new()
+//!         .eol("\r\n")
+//!         .no_eof(true)
+//!         .hash_file(&file_in, Some(file_out));
 //!     println!("{}", hash);
 //! }
 //! ```
@@ -50,50 +60,145 @@ use std::path::Path;
 
 use sha2::{Digest, Sha256};
 
-/// Create hash from a text file, regardless of line endings.
-///
-/// This function reads `file_in` linewise, replacing whatever line ending is present with a single
-/// line feed character (`\n`). From this, it generates a hash code.
-///
-/// Optionally, it is possible to write the normalized input to `file_out`.
-///
-/// # Example
-///
-/// ```no_run
-/// use std::path::PathBuf;
-/// use normalized_hash::hash_file;
-///
-/// let hash_without_output = hash_file(PathBuf::from("input.txt"), None::<PathBuf>);
-///
-/// let hash_with_output = hash_file(
-///     PathBuf::from("input.txt"),
-///     Some(PathBuf::from("output.txt"))
-/// );
-/// ```
-pub fn hash_file(file_in: impl AsRef<Path>, file_out: Option<impl AsRef<Path>>) -> String {
-    let file_in = File::open(file_in).unwrap();
-    let file_in = BufReader::new(file_in);
+pub struct Hasher {
+    eol: String,
+    no_eof: bool,
+}
 
-    let mut file_out = file_out.and_then(|file_out| {
-        let file_out = File::create(file_out).unwrap();
-        let file_out = BufWriter::new(file_out);
-        Some(file_out)
-    });
-
-    let mut hasher = Sha256::new();
-    for line in file_in.lines() {
-        let line = line.unwrap();
-        let line = format!("{}\n", line);
-        hasher.update(&line);
-
-        if let Some(file_out) = &mut file_out {
-            file_out.write_all(line.as_bytes()).unwrap();
+impl Default for Hasher {
+    fn default() -> Self {
+        Self {
+            eol: "\n".to_string(),
+            no_eof: false,
         }
     }
+}
 
-    let hash = hasher.finalize();
+impl Hasher {
+    /// Create new Hasher instance with default options.
+    ///
+    /// # Defaults
+    ///
+    /// If not overwritten by the fluent API, the following defaults are valid:
+    ///
+    /// -   `eol`: `"\n"`
+    ///
+    ///     End-of-line sequence, will be appended to each normalized line for hashing.
+    ///
+    /// -   `no_eof`: `false`
+    ///
+    ///     Skip last end-of-line on end-of-file. If this is set to true, no trailing EOL will be
+    ///     appended at the end of the file.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use normalized_hash::Hasher;
+    /// let hasher = Hasher::new();
+    /// ```
+    pub fn new() -> Self {
+        Default::default()
+    }
 
-    base16ct::lower::encode_string(&hash)
+    /// Change the eol sequence.
+    ///
+    /// This string will be appended to each normalized line for hashing.
+    ///
+    /// Defaults to `"\n"`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use normalized_hash::Hasher;
+    /// let hasher = Hasher::new().eol("\r\n");
+    /// ```
+    pub fn eol(mut self, eol: impl Into<String>) -> Self {
+        self.eol = eol.into();
+        self
+    }
+
+    /// Skip last end-of-line on end-of-file.
+    ///
+    /// If this is set to true, no trailing EOL will be appended at the end of the file.
+    ///
+    /// Defaults to `false`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use normalized_hash::Hasher;
+    /// let hasher = Hasher::new().no_eof(true);
+    /// ```
+    pub fn no_eof(mut self, no_eof: bool) -> Self {
+        self.no_eof = no_eof;
+        self
+    }
+
+    /// Create hash from a text file, regardless of line endings.
+    ///
+    /// This function reads `file_in` linewise, replacing whatever line ending is present with a
+    /// single line feed character (`\n`). From this, it generates a hash code.
+    ///
+    /// Optionally, it is possible to write the normalized input to `file_out`.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use std::path::PathBuf;
+    ///     use normalized_hash::Hasher;
+    ///
+    ///     let hash_without_output = Hasher::new().hash_file(PathBuf::from("input.txt"), None::<PathBuf>);
+    ///
+    ///     let hash_with_output = Hasher::new().hash_file(
+    ///     PathBuf::from("input.txt"),
+    ///     Some(PathBuf::from("output.txt"))
+    ///     );
+    /// ```
+    pub fn hash_file(
+        &self,
+        file_in: impl AsRef<Path>,
+        file_out: Option<impl AsRef<Path>>,
+    ) -> String {
+        let file_in = File::open(file_in).unwrap();
+        let file_in = BufReader::new(file_in);
+
+        let mut file_out = file_out.and_then(|file_out| {
+            let file_out = File::create(file_out).unwrap();
+            let file_out = BufWriter::new(file_out);
+            Some(file_out)
+        });
+
+        let mut hasher = Sha256::new();
+
+        let mut is_first_line = true;
+        for line in file_in.lines() {
+            let line = line.unwrap();
+            let line = if !is_first_line {
+                format!("{}{}", &self.eol, line)
+            } else {
+                line
+            };
+            hasher.update(&line);
+
+            if let Some(file_out) = &mut file_out {
+                file_out.write_all(line.as_bytes()).unwrap();
+            }
+
+            is_first_line = false;
+        }
+
+        if !self.no_eof {
+            hasher.update(&self.eol);
+
+            if let Some(file_out) = &mut file_out {
+                file_out.write_all(&self.eol.as_bytes()).unwrap();
+            }
+        }
+
+        let hash = hasher.finalize();
+
+        base16ct::lower::encode_string(&hash)
+    }
 }
 
 #[cfg(test)]
@@ -101,42 +206,157 @@ mod tests {
     use std::error::Error;
     use std::ffi::OsString;
     use std::fs;
+    use std::iter::zip;
+    use std::ops::Add;
 
-    use tempfile;
+    use tempfile::NamedTempFile;
 
     use super::*;
 
+    struct TestEnv {
+        file_with_crlf: NamedTempFile,
+        file_with_crlf_noeof: NamedTempFile,
+        file_with_lf: NamedTempFile,
+        file_with_lf_noeof: NamedTempFile,
+
+        normalized_file_with_crlf: NamedTempFile,
+        normalized_file_with_crlf_noeof: NamedTempFile,
+        normalized_file_with_lf: NamedTempFile,
+        normalized_file_with_lf_noeof: NamedTempFile,
+    }
+
+    impl TestEnv {
+        fn new() -> Result<Self, std::io::Error> {
+            let mut file_with_crlf = NamedTempFile::new()?;
+            let mut file_with_crlf_noeof = NamedTempFile::new()?;
+            let mut file_with_lf = NamedTempFile::new()?;
+            let mut file_with_lf_noeof = NamedTempFile::new()?;
+
+            let normalized_file_with_crlf_noeof = NamedTempFile::new()?;
+            let normalized_file_with_crlf = NamedTempFile::new()?;
+            let normalized_file_with_lf_noeof = NamedTempFile::new()?;
+            let normalized_file_with_lf = NamedTempFile::new()?;
+
+            let content = vec!["A B", "C D"];
+
+            file_with_crlf.write_all(content.join("\r\n").add("\r\n").as_bytes())?;
+            file_with_crlf_noeof.write_all(content.join("\r\n").as_bytes())?;
+            file_with_lf.write_all(content.join("\n").add("\n").as_bytes())?;
+            file_with_lf_noeof.write_all(content.join("\n").as_bytes())?;
+
+            Ok(TestEnv {
+                file_with_crlf,
+                file_with_crlf_noeof,
+                file_with_lf,
+                file_with_lf_noeof,
+
+                normalized_file_with_crlf,
+                normalized_file_with_crlf_noeof,
+                normalized_file_with_lf,
+                normalized_file_with_lf_noeof,
+            })
+        }
+
+        fn get_input_files(&self) -> Vec<&NamedTempFile> {
+            vec![
+                &self.file_with_crlf,
+                &self.file_with_crlf_noeof,
+                &self.file_with_lf,
+                &self.file_with_lf_noeof,
+            ]
+        }
+
+        fn get_output_files(&self) -> Vec<&NamedTempFile> {
+            vec![
+                &self.normalized_file_with_crlf,
+                &self.normalized_file_with_crlf_noeof,
+                &self.normalized_file_with_lf,
+                &self.normalized_file_with_lf_noeof,
+            ]
+        }
+
+        fn hash_files(&self, hasher: Hasher) -> Result<(), Box<dyn Error>> {
+            let mut hash_check = None;
+            let mut content_check = None;
+
+            for (file_in, file_out) in zip(self.get_input_files(), self.get_output_files()) {
+                let hash = hasher.hash_file(file_in, Some(file_out));
+
+                if hash_check.is_none() {
+                    hash_check = Some(hash.clone());
+                    content_check = Some(fs::read_to_string(file_out)?)
+                }
+
+                if let (Some(hash_check), Some(content_check)) = (&hash_check, &content_check) {
+                    assert_eq!(&hash, hash_check, "Hashes don't match");
+                    assert_eq!(
+                        &fs::read_to_string(file_out)?,
+                        content_check,
+                        "Normalized files don't match"
+                    );
+                }
+            }
+
+            Ok(())
+        }
+    }
+
     #[test]
     fn check_empty_file() -> Result<(), Box<dyn Error>> {
-        let file = tempfile::NamedTempFile::new()?;
+        let file = NamedTempFile::new()?;
 
         // Sanity check between hasher versions
-        let hash_expected = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-        let hash_actual = hash_file(file, None::<OsString>);
 
+        // Completely empty file
+        let hash_expected = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+        let hash_actual = Hasher::new().eol("").hash_file(&file, None::<OsString>);
+        assert_eq!(hash_actual, hash_expected);
+
+        // Empty file ending in LF
+        let hash_expected = "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b";
+        let hash_actual = Hasher::new().hash_file(&file, None::<OsString>);
         assert_eq!(hash_actual, hash_expected);
 
         Ok(())
     }
 
     #[test]
-    fn check_different_eols() -> Result<(), Box<dyn Error>> {
-        let mut file_with_lf = tempfile::NamedTempFile::new()?;
-        let mut file_with_crlf = tempfile::NamedTempFile::new()?;
+    fn check_default_options() -> Result<(), Box<dyn Error>> {
+        let test_env = TestEnv::new()?;
+        test_env.hash_files(Hasher::new())?;
 
-        let file_with_lf_normalized = tempfile::NamedTempFile::new()?;
-        let file_with_crlf_normalized = tempfile::NamedTempFile::new()?;
-
-        file_with_lf.write_all("A\nb".as_ref())?;
-        file_with_crlf.write_all("A\r\nb".as_ref())?;
-
-        let hash_with_lf = hash_file(file_with_lf, Some(&file_with_lf_normalized));
-        let hash_with_crlf = hash_file(file_with_crlf, Some(&file_with_crlf_normalized));
-
-        assert_eq!(hash_with_lf, hash_with_crlf);
         assert_eq!(
-            fs::read_to_string(file_with_lf_normalized)?,
-            fs::read_to_string(file_with_crlf_normalized)?
+            fs::read_to_string(&test_env.file_with_lf)?,
+            fs::read_to_string(&test_env.normalized_file_with_lf)?,
+            "Normalized files do not have LF"
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn check_with_custom_eol() -> Result<(), Box<dyn Error>> {
+        let test_env = TestEnv::new()?;
+        test_env.hash_files(Hasher::new().eol("\r\n"))?;
+
+        assert_eq!(
+            fs::read_to_string(&test_env.file_with_crlf)?,
+            fs::read_to_string(&test_env.normalized_file_with_crlf)?,
+            "Normalized files do not have CRLF"
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn check_without_eof() -> Result<(), Box<dyn Error>> {
+        let test_env = TestEnv::new()?;
+        test_env.hash_files(Hasher::new().no_eof(true))?;
+
+        assert_eq!(
+            fs::read_to_string(&test_env.file_with_lf_noeof)?,
+            fs::read_to_string(&test_env.normalized_file_with_lf)?,
+            "Normalized files do not have LF without EOF"
         );
 
         Ok(())
