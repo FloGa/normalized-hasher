@@ -152,6 +152,12 @@ struct Cli {
     #[arg(long, default_value = "\n")]
     eol: String,
 
+    /// Ignore all whitespaces
+    ///
+    /// This will remove all whitespaces from the input file when generating the hash.
+    #[arg(long)]
+    ignore_whitespaces: bool,
+
     /// Skip last end-of-line on end-of-file
     ///
     /// With this flag, no trailing EOL will be appended at the end of the file.
