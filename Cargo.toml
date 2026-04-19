@@ -37,7 +37,7 @@ normalized-hash = { version = "0.1.1-RC", path = "crates/normalized-hash" }
 
 base16ct = { version = "1.0.0", features = ["alloc"] }
 clap = { version = "4.3.22", features = ["derive"] }
-sha2 = "0.10.6"
+sha2 = "0.11.0"
 
 # Development / test dependencies
 
