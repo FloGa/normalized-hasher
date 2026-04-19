@@ -1,3 +1,11 @@
+# Changes in 0.1.1
+
+-   Upgrade base16ct to 1.0.0
+
+-   Upgrade sha2 to 0.11.0
+
+-   Update dependencies
+
 # Changes in 0.1.0
 
 -   Create crate from library part of normalized-hasher
