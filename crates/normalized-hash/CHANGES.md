@@ -1,4 +1,4 @@
-# Changes in 0.1.1-RC
+# Changes in 0.1.1
 
 -   Upgrade base16ct to 1.0.0
 
